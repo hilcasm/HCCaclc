@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Calc — Wes Anderson Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink:    #F2A7BB;
+    --peach:   #F7C59F;
+    --mint:    #A8D8B9;
+    --lavender:#C9B8E8;
+    --cream:   #FFF8EF;
+    --gold:    #E8C547;
+    --rust:    #D4613A;
+    --navy:    #2C3E6B;
+    --shadow:  #1a1a2e;
+    --display-bg: #2C3E6B;
+    --display-text: #F7C59F;
+    --pixel: 4px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    image-rendering: pixelated;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: #EDE0D4;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(44,62,107,0.07) 39px, rgba(44,62,107,0.07) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(44,62,107,0.07) 39px, rgba(44,62,107,0.07) 40px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+  }
+
+  .scene-label {
+    font-family: 'Special Elite', cursive;
+    color: var(--navy);
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    opacity: 0.6;
+  }
+
+  .calc-wrapper {
+    position: relative;
+    animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.9); }
+    to   { opacity: 1; transform: translateY(0)   scale(1);   }
+  }
+
+  .calc-outer {
+    background: var(--peach);
+    border: var(--pixel) solid var(--shadow);
+    box-shadow:
+      8px 8px 0 var(--shadow),
+      inset -4px -4px 0 rgba(0,0,0,0.15),
+      inset 4px 4px 0 rgba(255,255,255,0.4);
+    padding: 20px 20px 24px;
+    width: 300px;
+    position: relative;
+  }
+
+  .calc-outer::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: 12px;
+    right: 12px; height: 4px;
+    background: rgba(255,255,255,0.5);
+  }
+
+  .brand-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .brand-name {
+    font-family: 'Special Elite', cursive;
+    color: var(--navy);
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+
+  .brand-dot {
+    width: 8px; height: 8px;
+    background: var(--rust);
+    border: 2px solid var(--shadow);
+    box-shadow: 2px 2px 0 var(--shadow);
+  }
+
+  .display-frame {
+    background: var(--navy);
+    border: var(--pixel) solid var(--shadow);
+    box-shadow:
+      4px 4px 0 var(--shadow),
+      inset 0 0 0 2px rgba(255,255,255,0.1);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .display-frame::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px solid rgba(255,255,255,0.05);
+    pointer-events: none;
+  }
+
+  .display-expression {
+    font-size: 7px;
+    color: rgba(242,167,187,0.6);
+    text-align: right;
+    height: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  .display-main {
+    font-size: 18px;
+    color: var(--display-text);
+    text-align: right;
+    letter-spacing: -1px;
+    min-height: 28px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: 'Press Start 2P', monospace;
+    text-shadow: 0 0 10px rgba(247,197,159,0.4);
+    transition: color 0.1s;
+  }
+
+  .display-main.flash { color: #fff; }
+
+  .scanline {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+  }
+
+  .divider {
+    height: 3px;
+    background: linear-gradient(90deg, var(--pink), var(--lavender), var(--mint), var(--gold));
+    border: 1px solid var(--shadow);
+    margin-bottom: 14px;
+    box-shadow: 1px 1px 0 var(--shadow);
+  }
+
+  .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 0;
+    height: 52px;
+    border: var(--pixel) solid var(--shadow);
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.05s, box-shadow 0.05s;
+    outline: none;
+    user-select: none;
+    box-shadow: 4px 4px 0 var(--shadow);
+    letter-spacing: -0.5px;
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    right: 6px; height: 4px;
+    background: rgba(255,255,255,0.35);
+  }
+
+  .btn:active,
+  .btn.pressed {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 var(--shadow);
+  }
+
+  .btn-num {
+    background: var(--cream);
+    color: var(--navy);
+  }
+  .btn-num:hover { background: #fffdf7; filter: brightness(1.03); }
+
+  .btn-op {
+    background: var(--lavender);
+    color: var(--navy);
+    font-size: 14px;
+  }
+  .btn-op:hover { filter: brightness(1.05); }
+
+  .btn-clear {
+    background: var(--pink);
+    color: var(--navy);
+    font-size: 8px;
+  }
+  .btn-clear:hover { filter: brightness(1.05); }
+
+  .btn-sign {
+    background: var(--mint);
+    color: var(--navy);
+    font-size: 8px;
+  }
+  .btn-sign:hover { filter: brightness(1.05); }
+
+  .btn-pct {
+    background: var(--mint);
+    color: var(--navy);
+  }
+  .btn-pct:hover { filter: brightness(1.05); }
+
+  .btn-equals {
+    background: var(--rust);
+    color: var(--cream);
+    grid-column: span 1;
+    font-size: 16px;
+  }
+  .btn-equals:hover { filter: brightness(1.1); }
+
+  .btn-zero {
+    grid-column: span 2;
+  }
+
+  .btn-backspace {
+    background: var(--gold);
+    color: var(--navy);
+    font-size: 8px;
+  }
+  .btn-backspace:hover { filter: brightness(1.05); }
+
+  .pixel-corner {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--shadow);
+  }
+  .pc-tl { top: -1px; left: -1px; }
+  .pc-tr { top: -1px; right: -1px; }
+  .pc-bl { bottom: -1px; left: -1px; }
+  .pc-br { bottom: -1px; right: -1px; }
+
+  .footer-label {
+    font-family: 'Special Elite', cursive;
+    color: var(--navy);
+    font-size: 9px;
+    text-align: center;
+    margin-top: 18px;
+    opacity: 0.5;
+    letter-spacing: 3px;
+  }
+
+  .deco-stripe {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0;
+  }
+
+  .deco-stripe span {
+    display: block;
+    width: 12px;
+    height: 6px;
+    border: 2px solid var(--shadow);
+  }
+</style>
+</head>
+<body>
+
+<div class="scene-label">— Scene IV: The Arithmetic Room —</div>
+
+<div class="calc-wrapper">
+  <div class="calc-outer">
+    <div class="pixel-corner pc-tl"></div>
+    <div class="pixel-corner pc-tr"></div>
+    <div class="pixel-corner pc-bl"></div>
+    <div class="pixel-corner pc-br"></div>
+
+    <div class="brand-strip">
+      <span class="brand-name">CALCUBERT MK.II</span>
+      <div class="brand-dot"></div>
+    </div>
+
+    <div class="display-frame">
+      <div class="scanline"></div>
+      <div class="display-expression" id="expression"></div>
+      <div class="display-main" id="display">0</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="btn-grid">
+      <button class="btn btn-clear"    onclick="clearAll()">AC</button>
+      <button class="btn btn-sign"     onclick="toggleSign()">+/-</button>
+      <button class="btn btn-pct"      onclick="percent()">%</button>
+      <button class="btn btn-op"       onclick="setOp('/')">÷</button>
+
+      <button class="btn btn-num"      onclick="input('7')">7</button>
+      <button class="btn btn-num"      onclick="input('8')">8</button>
+      <button class="btn btn-num"      onclick="input('9')">9</button>
+      <button class="btn btn-op"       onclick="setOp('*')">×</button>
+
+      <button class="btn btn-num"      onclick="input('4')">4</button>
+      <button class="btn btn-num"      onclick="input('5')">5</button>
+      <button class="btn btn-num"      onclick="input('6')">6</button>
+      <button class="btn btn-op"       onclick="setOp('-')">−</button>
+
+      <button class="btn btn-num"      onclick="input('1')">1</button>
+      <button class="btn btn-num"      onclick="input('2')">2</button>
+      <button class="btn btn-num"      onclick="input('3')">3</button>
+      <button class="btn btn-op"       onclick="setOp('+')">+</button>
+
+      <button class="btn btn-num btn-zero" onclick="input('0')">0</button>
+      <button class="btn btn-backspace"    onclick="backspace()">←</button>
+      <button class="btn btn-equals"       onclick="calculate()">=</button>
+    </div>
+  </div>
+
+  <div class="footer-label">est. 1965 · pixel division</div>
+
+  <div class="deco-stripe">
+    <span style="background:var(--pink)"></span>
+    <span style="background:var(--peach)"></span>
+    <span style="background:var(--gold)"></span>
+    <span style="background:var(--mint)"></span>
+    <span style="background:var(--lavender)"></span>
+    <span style="background:var(--rust)"></span>
+  </div>
+</div>
+
+<script>
+  let current = '0';
+  let previous = '';
+  let operator = null;
+  let shouldReset = false;
+  let expressionStr = '';
+
+  const display = document.getElementById('display');
+  const expression = document.getElementById('expression');
+
+  function updateDisplay(val) {
+    let shown = String(val);
+    if (shown.length > 12) shown = parseFloat(parseFloat(shown).toPrecision(10)).toString();
+    display.textContent = shown;
+    display.classList.add('flash');
+    setTimeout(() => display.classList.remove('flash'), 80);
+  }
+
+  function input(digit) {
+    if (shouldReset) {
+      current = digit;
+      shouldReset = false;
+    } else {
+      if (current === '0' && digit !== '.') current = digit;
+      else if (digit === '.' && current.includes('.')) return;
+      else current += digit;
+    }
+    updateDisplay(current);
+  }
+
+  function setOp(op) {
+    if (operator && !shouldReset) calculate(true);
+    previous = current;
+    operator = op;
+    shouldReset = true;
+    const symbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+    expressionStr = previous + ' ' + symbols[op];
+    expression.textContent = expressionStr;
+  }
+
+  function calculate(chain = false) {
+    if (!operator || previous === '') return;
+    const a = parseFloat(previous);
+    const b = parseFloat(current);
+    let result;
+    if (operator === '+') result = a + b;
+    else if (operator === '-') result = a - b;
+    else if (operator === '*') result = a * b;
+    else if (operator === '/') result = b === 0 ? 'ERR' : a / b;
+
+    const symbols = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+    if (!chain) {
+      expressionStr = previous + ' ' + symbols[operator] + ' ' + current + ' =';
+      expression.textContent = expressionStr;
+      operator = null;
+    }
+
+    current = result === 'ERR' ? 'ERR' : String(result);
+    updateDisplay(current);
+    previous = current;
+    shouldReset = true;
+  }
+
+  function clearAll() {
+    current = '0';
+    previous = '';
+    operator = null;
+    shouldReset = false;
+    expressionStr = '';
+    expression.textContent = '';
+    updateDisplay('0');
+  }
+
+  function toggleSign() {
+    if (current === '0' || current === 'ERR') return;
+    current = String(parseFloat(current) * -1);
+    updateDisplay(current);
+  }
+
+  function percent() {
+    if (current === 'ERR') return;
+    current = String(parseFloat(current) / 100);
+    updateDisplay(current);
+  }
+
+  function backspace() {
+    if (shouldReset || current === 'ERR') { clearAll(); return; }
+    if (current.length === 1 || (current.length === 2 && current[0] === '-')) {
+      current = '0';
+    } else {
+      current = current.slice(0, -1);
+    }
+    updateDisplay(current);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') input(e.key);
+    else if (e.key === '.') input('.');
+    else if (e.key === '+') setOp('+');
+    else if (e.key === '-') setOp('-');
+    else if (e.key === '*') setOp('*');
+    else if (e.key === '/') { e.preventDefault(); setOp('/'); }
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') backspace();
+    else if (e.key === 'Escape') clearAll();
+    else if (e.key === '%') percent();
+  });
+
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mousedown', () => btn.classList.add('pressed'));
+    btn.addEventListener('mouseup',   () => btn.classList.remove('pressed'));
+    btn.addEventListener('mouseleave',() => btn.classList.remove('pressed'));
+  });
+</script>
+</body>
+</html>
