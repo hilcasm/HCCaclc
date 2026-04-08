@@ -370,6 +370,72 @@
   const display = document.getElementById('display');
   const expression = document.getElementById('expression');
 
+  const actx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function resumeCtx() {
+    if (actx.state === 'suspended') actx.resume();
+  }
+
+  function playSound(type) {
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.connect(g);
+    g.connect(actx.destination);
+    const now = actx.currentTime;
+
+    if (type === 'num') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(600, now);
+      o.frequency.exponentialRampToValueAtTime(480, now + 0.06);
+      g.gain.setValueAtTime(0.18, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      o.start(now);
+      o.stop(now + 0.1);
+    } else if (type === 'op') {
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(780, now);
+      o.frequency.exponentialRampToValueAtTime(640, now + 0.08);
+      g.gain.setValueAtTime(0.15, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      o.start(now);
+      o.stop(now + 0.12);
+    } else if (type === 'equals') {
+      const o2 = actx.createOscillator();
+      const g2 = actx.createGain();
+      o2.connect(g2);
+      g2.connect(actx.destination);
+      o.type = 'sine';
+      o.frequency.setValueAtTime(523, now);
+      g.gain.setValueAtTime(0.15, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      o.start(now);
+      o.stop(now + 0.2);
+      o2.type = 'sine';
+      o2.frequency.setValueAtTime(784, now + 0.08);
+      g2.gain.setValueAtTime(0.0, now);
+      g2.gain.setValueAtTime(0.13, now + 0.08);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      o2.start(now + 0.08);
+      o2.stop(now + 0.35);
+    } else if (type === 'clear') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(300, now);
+      o.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+      g.gain.setValueAtTime(0.1, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      o.start(now);
+      o.stop(now + 0.15);
+    } else if (type === 'back') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(400, now);
+      o.frequency.exponentialRampToValueAtTime(280, now + 0.07);
+      g.gain.setValueAtTime(0.12, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      o.start(now);
+      o.stop(now + 0.09);
+    }
+  }
+
   function updateDisplay(val) {
     let shown = String(val);
     if (shown.length > 12) shown = parseFloat(parseFloat(shown).toPrecision(10)).toString();
@@ -379,6 +445,8 @@
   }
 
   function input(digit) {
+    resumeCtx();
+    playSound('num');
     if (shouldReset) {
       current = digit;
       shouldReset = false;
@@ -391,6 +459,8 @@
   }
 
   function setOp(op) {
+    resumeCtx();
+    playSound('op');
     if (operator && !shouldReset) calculate(true);
     previous = current;
     operator = op;
@@ -401,6 +471,7 @@
   }
 
   function calculate(chain = false) {
+    if (!chain) { resumeCtx(); playSound('equals'); }
     if (!operator || previous === '') return;
     const a = parseFloat(previous);
     const b = parseFloat(current);
@@ -424,6 +495,8 @@
   }
 
   function clearAll() {
+    resumeCtx();
+    playSound('clear');
     current = '0';
     previous = '';
     operator = null;
@@ -434,18 +507,24 @@
   }
 
   function toggleSign() {
+    resumeCtx();
+    playSound('op');
     if (current === '0' || current === 'ERR') return;
     current = String(parseFloat(current) * -1);
     updateDisplay(current);
   }
 
   function percent() {
+    resumeCtx();
+    playSound('op');
     if (current === 'ERR') return;
     current = String(parseFloat(current) / 100);
     updateDisplay(current);
   }
 
   function backspace() {
+    resumeCtx();
+    playSound('back');
     if (shouldReset || current === 'ERR') { clearAll(); return; }
     if (current.length === 1 || (current.length === 2 && current[0] === '-')) {
       current = '0';
