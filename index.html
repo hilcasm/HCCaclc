@@ -260,6 +260,22 @@
   }
   .btn-backspace:hover { filter: brightness(1.05); }
 
+  .btn-info-a {
+    background: var(--lavender);
+    color: var(--navy);
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .btn-info-a:hover { filter: brightness(1.08); }
+
+  .btn-info-b {
+    background: var(--mint);
+    color: var(--navy);
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .btn-info-b:hover { filter: brightness(1.08); }
+
   .pixel-corner {
     position: absolute;
     width: 6px; height: 6px;
@@ -294,6 +310,124 @@
     width: 12px;
     height: 6px;
     border: 2px solid var(--shadow);
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 26, 46, 0.75);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .modal-box {
+    background: var(--cream);
+    border: var(--pixel) solid var(--shadow);
+    box-shadow: 8px 8px 0 var(--shadow);
+    padding: 20px;
+    width: 280px;
+    position: relative;
+    animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+
+  .modal-pixel-corner {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--shadow);
+  }
+  .mpc-tl { top: -1px; left: -1px; }
+  .mpc-tr { top: -1px; right: -1px; }
+  .mpc-bl { bottom: -1px; left: -1px; }
+  .mpc-br { bottom: -1px; right: -1px; }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--shadow);
+  }
+
+  .modal-title {
+    font-size: 9px;
+    color: var(--navy);
+    letter-spacing: 1px;
+  }
+
+  .modal-close {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    background: var(--pink);
+    border: 2px solid var(--shadow);
+    box-shadow: 2px 2px 0 var(--shadow);
+    color: var(--navy);
+    cursor: pointer;
+    padding: 4px 7px;
+    line-height: 1;
+  }
+
+  .modal-close:active {
+    transform: translate(2px,2px);
+    box-shadow: none;
+  }
+
+  .modal-body {
+    font-family: 'Special Elite', cursive;
+    font-size: 13px;
+    color: var(--navy);
+    line-height: 1.7;
+  }
+
+  .modal-body .row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: flex-start;
+  }
+
+  .modal-body .label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: var(--rust);
+    white-space: nowrap;
+    margin-top: 3px;
+    min-width: 60px;
+  }
+
+  .modal-body .value {
+    font-size: 12px;
+  }
+
+  .modal-kaomoji {
+    text-align: center;
+    font-size: 18px;
+    margin: 10px 0 4px;
+    letter-spacing: 4px;
+  }
+
+  .modal-divider {
+    height: 2px;
+    background: linear-gradient(90deg, var(--pink), var(--lavender), var(--mint), var(--gold));
+    margin: 10px 0;
+    border: 1px solid var(--shadow);
   }
 </style>
 </head>
@@ -345,6 +479,9 @@
       <button class="btn btn-num btn-zero" onclick="input('0')">0</button>
       <button class="btn btn-backspace"    onclick="backspace()">←</button>
       <button class="btn btn-equals"       onclick="calculate()">=</button>
+
+      <button class="btn btn-info-a"   onclick="showModal('dev')">A</button>
+      <button class="btn btn-info-b"   onclick="showModal('app')" style="grid-column: span 3;">B</button>
     </div>
   </div>
 
@@ -357,6 +494,20 @@
     <span style="background:var(--mint)"></span>
     <span style="background:var(--lavender)"></span>
     <span style="background:var(--rust)"></span>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal-box" id="modal-box">
+    <div class="modal-pixel-corner mpc-tl"></div>
+    <div class="modal-pixel-corner mpc-tr"></div>
+    <div class="modal-pixel-corner mpc-bl"></div>
+    <div class="modal-pixel-corner mpc-br"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">INFO</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
@@ -534,6 +685,53 @@
     updateDisplay(current);
   }
 
+  function showModal(type) {
+    resumeCtx();
+    playSound('op');
+    const overlay = document.getElementById('modal-overlay');
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+
+    if (type === 'dev') {
+      title.textContent = 'DEVELOPER INFO';
+      body.innerHTML = `
+        <div class="modal-kaomoji">( ˘ ³˘)♥</div>
+        <div class="modal-divider"></div>
+        <div class="row"><span class="label">NAME</span><span class="value">Hilnnee C. Casamayor</span></div>
+        <div class="row"><span class="label">USER</span><span class="value">@hilcasm</span></div>
+        <div class="row"><span class="label">LANG</span><span class="value">HTML</span></div>
+        <div class="row"><span class="label">COURSE</span><span class="value">BSIT 1</span></div>
+        <div class="row"><span class="label">SCHOOL</span><span class="value">MSU Zamboanga Sibugay</span></div>
+        <div class="modal-divider"></div>
+        <div class="modal-kaomoji">✧ﾟ･: *ヽ(◕ヮ◕ﾒ)ﾉ*:･ﾟ✧</div>
+      `;
+    } else {
+      title.textContent = 'ABOUT THIS APP';
+      body.innerHTML = `
+        <div class="modal-kaomoji">(｡•̀ᴗ-)✧</div>
+        <div class="modal-divider"></div>
+        <div class="row"><span class="label">APP</span><span class="value">HCCalc v0.7.2.8</span></div>
+        <div class="row"><span class="label">TYPE</span><span class="value">Standard Calculator</span></div>
+        <div class="row"><span class="label">OPS</span><span class="value">+ − × ÷ % +/−</span></div>
+        <div class="row"><span class="label">KEYS</span><span class="value">Keyboard supported!</span></div>
+        <div class="row"><span class="label">SFX</span><span class="value">Pixel sound effects ♪</span></div>
+        <div class="row"><span class="label">CLASS</span><span class="value">CCC102 · est. 2026</span></div>
+        <div class="modal-divider"></div>
+        <div class="modal-kaomoji">ヾ(＾∇＾) calculate away!</div>
+      `;
+    }
+
+    overlay.classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
   document.addEventListener('keydown', e => {
     if (e.key >= '0' && e.key <= '9') input(e.key);
     else if (e.key === '.') input('.');
@@ -543,7 +741,7 @@
     else if (e.key === '/') { e.preventDefault(); setOp('/'); }
     else if (e.key === 'Enter' || e.key === '=') calculate();
     else if (e.key === 'Backspace') backspace();
-    else if (e.key === 'Escape') clearAll();
+    else if (e.key === 'Escape') closeModal();
     else if (e.key === '%') percent();
   });
 
