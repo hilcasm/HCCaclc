@@ -376,70 +376,63 @@
     if (actx.state === 'suspended') actx.resume();
   }
 
-  function makeNoise(duration) {
-    const bufSize = actx.sampleRate * duration;
-    const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-    const src = actx.createBufferSource();
-    src.buffer = buf;
-    return src;
-  }
-
-  function thock(freq, noiseAmt, toneDur, noiseDur, vol) {
+  function playSound(type) {
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.connect(g);
+    g.connect(actx.destination);
     const now = actx.currentTime;
 
-    const noise = makeNoise(noiseDur);
-    const noiseFilter = actx.createBiquadFilter();
-    noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.value = freq * 1.4;
-    noiseFilter.Q.value = 0.8;
-    const noiseGain = actx.createGain();
-    noiseGain.gain.setValueAtTime(noiseAmt * vol, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur);
-    noise.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(actx.destination);
-    noise.start(now);
-    noise.stop(now + noiseDur);
-
-    const osc = actx.createOscillator();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + toneDur);
-    const oscGain = actx.createGain();
-    oscGain.gain.setValueAtTime(0.6 * vol, now);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, now + toneDur);
-    osc.connect(oscGain);
-    oscGain.connect(actx.destination);
-    osc.start(now);
-    osc.stop(now + toneDur);
-  }
-
-  function playSound(type) {
     if (type === 'num') {
-      thock(200, 1.2, 0.045, 0.055, 0.55);
-    } else if (type === 'op') {
-      thock(260, 1.0, 0.055, 0.07, 0.5);
-    } else if (type === 'equals') {
-      thock(180, 1.4, 0.07, 0.09, 0.6);
-      const now = actx.currentTime;
-      const o = actx.createOscillator();
-      const g = actx.createGain();
       o.type = 'sine';
-      o.frequency.setValueAtTime(880, now + 0.07);
-      o.frequency.exponentialRampToValueAtTime(1100, now + 0.18);
-      g.gain.setValueAtTime(0.0, now);
-      g.gain.setValueAtTime(0.12, now + 0.07);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      o.connect(g);
-      g.connect(actx.destination);
-      o.start(now + 0.07);
-      o.stop(now + 0.3);
+      o.frequency.setValueAtTime(600, now);
+      o.frequency.exponentialRampToValueAtTime(480, now + 0.06);
+      g.gain.setValueAtTime(0.18, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      o.start(now);
+      o.stop(now + 0.1);
+    } else if (type === 'op') {
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(780, now);
+      o.frequency.exponentialRampToValueAtTime(640, now + 0.08);
+      g.gain.setValueAtTime(0.15, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      o.start(now);
+      o.stop(now + 0.12);
+    } else if (type === 'equals') {
+      const o2 = actx.createOscillator();
+      const g2 = actx.createGain();
+      o2.connect(g2);
+      g2.connect(actx.destination);
+      o.type = 'sine';
+      o.frequency.setValueAtTime(523, now);
+      g.gain.setValueAtTime(0.15, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      o.start(now);
+      o.stop(now + 0.2);
+      o2.type = 'sine';
+      o2.frequency.setValueAtTime(784, now + 0.08);
+      g2.gain.setValueAtTime(0.0, now);
+      g2.gain.setValueAtTime(0.13, now + 0.08);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      o2.start(now + 0.08);
+      o2.stop(now + 0.35);
     } else if (type === 'clear') {
-      thock(140, 1.6, 0.09, 0.12, 0.65);
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(300, now);
+      o.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+      g.gain.setValueAtTime(0.1, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      o.start(now);
+      o.stop(now + 0.15);
     } else if (type === 'back') {
-      thock(230, 0.9, 0.035, 0.045, 0.45);
+      o.type = 'sine';
+      o.frequency.setValueAtTime(400, now);
+      o.frequency.exponentialRampToValueAtTime(280, now + 0.07);
+      g.gain.setValueAtTime(0.12, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      o.start(now);
+      o.stop(now + 0.09);
     }
   }
 
